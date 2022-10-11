@@ -1,29 +1,72 @@
 (ns mybank-web-api.core
-  (:require [io.pedestal.http :as http]
+  (:import (clojure.lang ExceptionInfo))
+  (:require [clojure.set :as set]
+            [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
-            [io.pedestal.test :as test-http]
-            [clojure.pprint :as pp])
+            [io.pedestal.test :as test-http])
   (:gen-class))
 
-(defonce contas (atom {:1 {:saldo 100}
-                   :2 {:saldo 200}
-                   :3 {:saldo 300}}))
+(defonce accounts (atom {:1 {:balance 100}
+                         :2 {:balance 200}
+                         :3 {:balance 300}}))
 
-(defn get-saldo [request]
-  (let [id-conta (-> request :path-params :id keyword)]
-    {:status 200 :body {:saldo (id-conta @contas "conta inválida!")}}))
+(defn get-balance [request]
+  (let [id-account (-> request :path-params :id keyword)]
+    {:status 200 :body {:balance (id-account @accounts "Invalid Account")}}))
 
-(defn make-deposit [request]
-  (let [id-conta (-> request :path-params :id keyword)
-        valor-deposito (-> request :body slurp parse-double)
-        _ (swap! contas (fn [m] (update-in m [id-conta :saldo] #(+ % valor-deposito))))]
-    {:status 200 :body {:id-conta id-conta
-                        :novo-saldo (id-conta @contas)}}))
+(defn make-deposit! [id-account amount]
+  (let [_ (swap! accounts (fn [m] (update-in m [id-account :balance] #(+ % amount))))]
+    {:status 200 :body {:id-account id-account
+                        :balance    (id-account @accounts)}}))
+
+(defn make-withdraw! [id-account amount]
+  (let [_ (swap! accounts (fn [m] (update-in m [id-account :balance] #(- % amount))))]
+    {:status 200 :body {:id-account id-account
+                        :balance    (id-account @accounts)}}))
+
+(defn account-not-exist-exception! [id-account accounts]
+  (when (nil? (get @accounts id-account))
+    (throw (ex-info "Account does not exist" {}))))
+
+(defn deposit [request]
+  (try
+    (let [id-account (-> request :path-params :id keyword)
+          amount (-> request :body slurp parse-double)]
+      (account-not-exist-exception! id-account accounts)
+      (make-deposit! id-account amount))
+    (catch ExceptionInfo e
+      {:status 404 :body (ex-message e)})))
+
+(defn withdraw [request]
+  (try
+    (let [id-account (-> request :path-params :id keyword)
+          amount (-> request :body slurp parse-double)]
+      (account-not-exist-exception! id-account accounts)
+      (make-withdraw! id-account amount))
+    (catch ExceptionInfo e
+      {:status 404 :body (ex-message e)})))
+
+(def get-balance-route
+  #{["/saldo/:id"
+     :get get-balance
+     :route-name :get-balance]})
+
+(def deposit-route
+  #{["/deposito/:id"
+     :post deposit
+     :route-name :deposit]})
+
+(def withdraw-route
+  #{["/saque/:id"
+     :post withdraw
+     :route-name :withdraw]})
 
 (def routes
   (route/expand-routes
-    #{["/saldo/:id" :get get-saldo :route-name :saldo]
-      ["/deposito/:id" :post make-deposit :route-name :deposito]}))
+    (set/union
+      get-balance-route
+      deposit-route
+      withdraw-route)))
 
 (defn create-server []
   (http/create-server
@@ -41,6 +84,7 @@
   (test-http/response-for (::http/service-fn @server) verb url))
 (defn test-post [server verb url body]
   (test-http/response-for (::http/service-fn @server) verb url :body body))
+
 (comment
   (start)
   (http/stop @server)
@@ -51,4 +95,9 @@
   (test-request server :get "/saldo/4")
 
   (test-post server :post "/deposito/2" "863.99")
-)
+  (test-post server :post "/deposito/20" "863.99")
+
+  (test-post server :post "/saque/3" "100")
+  (test-post server :post "/saque/30" "100")
+
+  )
