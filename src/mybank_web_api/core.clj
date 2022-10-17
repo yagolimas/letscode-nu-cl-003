@@ -33,8 +33,8 @@
 
 (defn deposit! [request]
   (try
-    (let [id-account (-> request :path-params :id keyword)
-          amount (-> request :body slurp parse-double)]
+    (let [id-account  (-> request :path-params :id keyword)
+          amount      (-> request :body slurp parse-double)]
       (account-not-exist-exception! id-account accounts)
       (make-deposit! id-account amount))
     (catch ExceptionInfo e
@@ -42,8 +42,8 @@
 
 (defn withdraw! [request]
   (try
-    (let [id-account (-> request :path-params :id keyword)
-          amount (-> request :body slurp parse-double)]
+    (let [id-account  (-> request :path-params :id keyword)
+          amount      (-> request :body slurp parse-double)]
       (account-not-exist-exception! id-account accounts)
       (not-negative-balance! id-account accounts amount)
       (make-withdraw! id-account amount))
