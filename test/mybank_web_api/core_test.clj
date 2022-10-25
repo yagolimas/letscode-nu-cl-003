@@ -1,5 +1,5 @@
 (ns mybank-web-api.core-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :refer [deftest testing is]]
             [com.stuartsierra.component :as component]
             [mybank-web-api.components :as components]
             [clj-http.client :as client]))
