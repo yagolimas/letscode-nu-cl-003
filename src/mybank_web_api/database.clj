@@ -1,10 +1,11 @@
 (ns mybank-web-api.database
   (:require [com.stuartsierra.component :as component]))
 
-(defrecord Database []
+(defrecord Database [config]
   component/Lifecycle
   (start [this]
-    (let [data-file (-> "resources/accounts.edn"
+    (let [_ (println config)
+          data-file (-> (-> config :config :db-file)
                         slurp
                         read-string)]
       (assoc this :accounts (atom data-file))))
@@ -12,4 +13,4 @@
     (assoc this :store nil)))
 
 (defn new-database []
-  (->Database))
+  (->Database {}))

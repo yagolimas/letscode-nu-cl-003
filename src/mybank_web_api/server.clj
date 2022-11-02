@@ -13,7 +13,7 @@
 (defn test-request [verb url]
   (test-http/response-for (::http/service-fn @server) verb url))
 
-(defrecord Server [database]
+(defrecord Server [database config]
   component/Lifecycle
 
   (start [this]
@@ -22,7 +22,7 @@
                           :enter (fn [context]
                                    (assoc context :accounts (:accounts database)))}
           service-map-base {::http/routes router/routes
-                            ::http/port 9999
+                            ::http/port (-> config :config :port)
                             ::http/type :jetty
                             ::http/join? false}
           service-map (-> service-map-base
@@ -36,7 +36,7 @@
           (str "Error executing server start:" (.getMessage e)))
         (finally
           (start service-map)
-          (println "Server is running at: http://localhost:9999")))
+          (println "Server is running at: http://localhost:" (-> config :config :port))))
       (assoc this :test-request test-request)))
 
   (stop [this]
@@ -44,4 +44,4 @@
     (http/stop @server)))
 
 (defn new-server []
-  (->Server {}))
+  (->Server {} {}))
