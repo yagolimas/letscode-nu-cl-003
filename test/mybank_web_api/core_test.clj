@@ -11,7 +11,7 @@
 (deftest get-balance-test
   (testing "Get balance by client is done successfully"
     (let [_         (start-test)
-          response  (client/get "http://localhost:9999/saldo/1")
+          response  (client/get "http://localhost:9999/api/saldo/1")
           _         (stop-test)]
       (is (= "{:balance 100}" (:body response)))))
 
@@ -27,7 +27,7 @@
 (deftest deposit-amount-test
   (testing "Deposit by client is done successfully"
     (let [_         (start-test)
-          response  (client/post "http://localhost:9999/deposito/1" {:body "199.90"})
+          response  (client/post "http://localhost:9999/api/deposito/1" {:body "199.90"})
           _         (stop-test)]
       (is (= "{:id-account :1, :balance {:balance 299.9}}" (:body response))))))
 
@@ -35,7 +35,7 @@
 
   (testing "Withdraw by client is done successfully"
     (let [_         (start-test)
-          response  (client/post "http://localhost:9999/saque/2" {:body "50"})
+          response  (client/post "http://localhost:9999/api/saque/2" {:body "50"})
           _         (stop-test)]
       (is (= "{:id-account :2, :balance {:balance 150.0}}" (:body response)))))
 

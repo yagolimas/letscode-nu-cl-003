@@ -2,12 +2,10 @@
   (:require [mybank-web-api.logic.account :as logic.account])
   (:import (clojure.lang ExceptionInfo)))
 
-
 (defn get-balance [context]
   (let [id-account  (-> context :request :path-params :id keyword)
         accounts    (-> context :accounts)]
     (assoc context :response {:status  200
-                              :headers {"Content-Type" "text/plain"}
                               :body    (id-account @accounts "invalid account")})))
 
 (defn deposit! [context]
@@ -19,7 +17,6 @@
         (throw (ex-info "Account does not exist" {})))
       (logic.account/deposit accounts id-account amount)
       (assoc context :response {:status  200
-                                :headers {"Content-Type" "text/plain"}
                                 :body    {:id-account id-account
                                           :balance    (id-account @accounts)}}))
     (catch ExceptionInfo e
@@ -36,7 +33,6 @@
         (throw (ex-info "Cannot have a negative balance" {})))
       (logic.account/withdraw accounts id-account amount)
       (assoc context :response {:status  200
-                                :headers {"Content-Type" "text/plain"}
                                 :body    {:id-account id-account
                                           :balance    (id-account @accounts)}}))
     (catch ExceptionInfo e

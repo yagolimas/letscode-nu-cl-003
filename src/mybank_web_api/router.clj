@@ -4,20 +4,18 @@
             [io.pedestal.interceptor :as i]
             [mybank-web-api.controllers.account :as controllers.account]))
 
-(def get-balance-route
-  #{["/saldo/:id"
+(def account-routes
+  #{["/api/saldo/:id"
      :get (i/interceptor {:name :get-balance
                           :enter controllers.account/get-balance})
-     :route-name :get-balance]})
+     :route-name :get-balance]
 
-(def deposit-route
-  #{["/deposito/:id"
+    ["/api/deposito/:id"
      :post (i/interceptor {:name :deposit
                            :enter controllers.account/deposit!})
-     :route-name :deposit]})
+     :route-name :deposit]
 
-(def withdraw-route
-  #{["/saque/:id"
+    ["/api/saque/:id"
      :post (i/interceptor {:name :withdraw
                            :enter controllers.account/withdraw!})
      :route-name :withdraw]})
@@ -25,6 +23,4 @@
 (def routes
   (route/expand-routes
     (set/union
-      get-balance-route
-      deposit-route
-      withdraw-route)))
+      account-routes)))

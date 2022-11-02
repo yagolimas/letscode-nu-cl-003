@@ -11,12 +11,12 @@
 
 (comment
   (main)
-  (client/get "http://localhost:9999/saldo/1")
-  (client/post "http://localhost:9999/deposito/1" {:body "199.93"})
-  (client/post "http://localhost:9999/saque/1" {:body "50"})
+  (client/get "http://localhost:9999/api/saldo/1")
+  (client/post "http://localhost:9999/api/deposito/1" {:body "199.93"})
+  (client/post "http://localhost:9999/api/saque/1" {:body "50"})
   (component/stop components/base)
 
-  ; curl -d "199.99" -X POST http://localhost:9999/deposito/1
+  ; curl -d "199.99" -X POST http://localhost:9999/api/deposito/1
   )
 
 
