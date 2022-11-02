@@ -1,15 +1,7 @@
-(ns mybank-web-api.controllers
+(ns mybank-web-api.controllers.account
+  (:require [mybank-web-api.logic.account :as logic.account])
   (:import (clojure.lang ExceptionInfo)))
 
-(defn account-not-exist-exception!
-  [id-account accounts]
-  (when (nil? (get @accounts id-account))
-    (throw (ex-info "Account does not exist" {}))))
-
-(defn not-negative-balance!
-  [id-account accounts amount]
-  (when (> amount (:balance (get @accounts id-account)))
-    (throw (ex-info "Cannot have a negative balance" {}))))
 
 (defn get-balance [context]
   (let [id-account  (-> context :request :path-params :id keyword)
@@ -23,8 +15,9 @@
     (let [id-account  (-> context :request :path-params :id keyword)
           amount      (-> context :request :body slurp parse-double)
           accounts    (-> context :accounts)]
-      (account-not-exist-exception! id-account accounts)
-      (swap! accounts (fn [m] (update-in m [id-account :balance] #(+ % amount))))
+      (when (logic.account/account-not-exist? accounts id-account)
+        (throw (ex-info "Account does not exist" {})))
+      (logic.account/deposit accounts id-account amount)
       (assoc context :response {:status  200
                                 :headers {"Content-Type" "text/plain"}
                                 :body    {:id-account id-account
@@ -37,9 +30,11 @@
     (let [id-account  (-> context :request :path-params :id keyword)
           amount      (-> context :request :body slurp parse-double)
           accounts    (-> context :accounts)]
-      (account-not-exist-exception! id-account accounts)
-      (not-negative-balance! id-account accounts amount)
-      (swap! accounts (fn [m] (update-in m [id-account :balance] #(- % amount))))
+      (when (logic.account/account-not-exist? accounts id-account)
+        (throw (ex-info "Account does not exist" {})))
+      (when (logic.account/balance-not-negative? amount accounts id-account)
+        (throw (ex-info "Cannot have a negative balance" {})))
+      (logic.account/withdraw accounts id-account amount)
       (assoc context :response {:status  200
                                 :headers {"Content-Type" "text/plain"}
                                 :body    {:id-account id-account

@@ -12,7 +12,7 @@
 (comment
   (main)
   (client/get "http://localhost:9999/saldo/1")
-  (client/post "http://localhost:9999/deposito/10" {:body "199.93"})
+  (client/post "http://localhost:9999/deposito/1" {:body "199.93"})
   (client/post "http://localhost:9999/saque/1" {:body "50"})
   (component/stop components/base)
 
